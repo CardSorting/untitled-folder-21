@@ -2,7 +2,8 @@ class ThreadManager {
     constructor() {
         this.messageCallbacks = [];
         this.threadId = null;
-        this.loadChatHistory();
+        this.lastMessageId = null;
+        this.loadChatHistory().then(() => this.startPolling());
     }
 
     async sendMessage(message) {
@@ -25,7 +26,12 @@ class ThreadManager {
 
             const data = await response.json();
             if (data.success) {
-                this.fetchResponse(data.task_id);
+                // Append user message
+                const userMessageTemplate = document.getElementById('userMessageTemplate').content.cloneNode(true);
+                userMessageTemplate.querySelector('p').textContent = message;
+                document.getElementById('chatMessages').appendChild(userMessageTemplate);
+                this.scrollToBottom();
+                this.fetchResponse();
             } else {
                  console.error('Error sending message:', data);
                  this.showAlert('Error sending message', 'error');
@@ -36,7 +42,7 @@ class ThreadManager {
         }
     }
     
-    async fetchResponse(taskId) {
+    async fetchResponse() {
         try {
             const response = await fetch(`/companion/history?limit=1`);
             if (!response.ok) {
@@ -46,10 +52,17 @@ class ThreadManager {
                 return;
             }
             const data = await response.json();
-            if (data.messages && data.messages.length > 0) {
+             if (data.messages && data.messages.length > 0) {
                 const lastMessage = data.messages[0];
-                if (lastMessage.type === 'ai') {
-                    this.messageCallbacks.forEach(callback => callback({ response: lastMessage.content }));
+                if (lastMessage.id !== this.lastMessageId) {
+                    this.lastMessageId = lastMessage.id;
+                    if (lastMessage.type === 'ai') {
+                        this.messageCallbacks.forEach(callback => callback({ response: lastMessage.content }));
+                        const aiMessageTemplate = document.getElementById('aiMessageTemplate').content.cloneNode(true);
+                        aiMessageTemplate.querySelector('p').textContent = lastMessage.content;
+                        document.getElementById('chatMessages').appendChild(aiMessageTemplate);
+                        this.scrollToBottom();
+                    }
                 }
             }
         } catch (error) {
@@ -90,6 +103,12 @@ class ThreadManager {
             console.error('Error loading chat history:', error);
             this.showAlert('Error loading chat history', 'error');
         }
+    }
+    
+    startPolling() {
+        setInterval(() => {
+            this.fetchResponse();
+        }, 1000);
     }
     
     scrollToBottom() {
