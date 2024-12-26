@@ -208,29 +208,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             threadManager.sendMessage(message);
-            
-            // Append user message
-            const userMessageTemplate = document.getElementById('userMessageTemplate').content.cloneNode(true);
-            userMessageTemplate.querySelector('p').textContent = message;
-            document.getElementById('chatMessages').appendChild(userMessageTemplate);
-            
             messageInput.value = '';
             messageInput.focus();
-            
-            // Scroll to bottom after a short delay to ensure new message is rendered
-            setTimeout(scrollToBottom, 100);
         }
     }
-    
-    threadManager.onMessage(function(response) {
-        // Append AI message
-        const aiMessageTemplate = document.getElementById('aiMessageTemplate').content.cloneNode(true);
-        aiMessageTemplate.querySelector('p').textContent = response.response;
-        document.getElementById('chatMessages').appendChild(aiMessageTemplate);
-        
-        // Scroll to bottom after a short delay to ensure new message is rendered
-        setTimeout(scrollToBottom, 100);
-    });
     
     // Load chat history
     function loadChatHistory() {
