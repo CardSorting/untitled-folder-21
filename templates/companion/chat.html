@@ -46,7 +46,7 @@
             <div class="flex-1 overflow-y-auto overscroll-contain" id="messagesContainer">
                 <div id="chatMessages" class="p-4 md:p-6 lg:p-8 space-y-6 min-h-full">
                     <!-- Welcome Message -->
-                    <div class="flex justify-center items-center min-h-[300px] text-gray-500">
+                    <div id="welcomeMessage" class="flex justify-center items-center min-h-[300px] text-gray-500">
                         <div class="text-center max-w-sm mx-auto">
                             <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-primary-50 flex items-center justify-center">
                                 <svg class="w-10 h-10 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -201,6 +201,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function sendMessage() {
         const message = messageInput.value.trim();
         if (message) {
+            // Remove welcome message
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            if (welcomeMessage) {
+                welcomeMessage.remove();
+            }
+            
             threadManager.sendMessage(message);
             
             // Append user message
@@ -225,6 +231,34 @@ document.addEventListener('DOMContentLoaded', function() {
         // Scroll to bottom after a short delay to ensure new message is rendered
         setTimeout(scrollToBottom, 100);
     });
+    
+    // Load chat history
+    function loadChatHistory() {
+        fetch('/companion/history')
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages) {
+                    const welcomeMessage = document.getElementById('welcomeMessage');
+                    if (welcomeMessage) {
+                        welcomeMessage.remove();
+                    }
+                    data.messages.forEach(msg => {
+                        if (msg.type === 'user') {
+                            const userMessageTemplate = document.getElementById('userMessageTemplate').content.cloneNode(true);
+                            userMessageTemplate.querySelector('p').textContent = msg.content;
+                            document.getElementById('chatMessages').appendChild(userMessageTemplate);
+                        } else if (msg.type === 'ai') {
+                            const aiMessageTemplate = document.getElementById('aiMessageTemplate').content.cloneNode(true);
+                            aiMessageTemplate.querySelector('p').textContent = msg.content;
+                            document.getElementById('chatMessages').appendChild(aiMessageTemplate);
+                        }
+                    });
+                    scrollToBottom();
+                }
+            });
+    }
+    
+    loadChatHistory();
 
     // Auto-focus input on page load
     messageInput.focus();
