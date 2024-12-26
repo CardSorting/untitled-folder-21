@@ -4,7 +4,10 @@ from flask import current_app
 import google.generativeai as genai
 import json
 
-# Initialize Gemini AI[']
+# Initialize Gemini AI
+# Note: Environment variables should be configured in .env file
+# The User model is now SQLAlchemy-based, not Firestore-based.
+#
 
 genai.configure(api_key=os.environ.get('GOOGLE_API_KEY'))
 model = genai.GenerativeModel('gemini-exp-1206')

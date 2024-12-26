@@ -82,15 +82,6 @@ def get_chat_history():
         current_app.logger.error(f"Error getting chat history: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
-@companion_bp.route('/task-status/<task_id>')
-@login_required
-def task_status(task_id):
-    """Check the status of a Celery task."""
-    try:
-        return jsonify({'status': 'completed'}) # always return completed since we're not using celery anymore
-    except Exception as e:
-        current_app.logger.error(f"Error checking task status: {str(e)}")
-        return jsonify({'error': str(e)}), 500
 
 @companion_bp.route('/stream')
 @login_required
